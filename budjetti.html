@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Budjetti">
+<title>Budjetti</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f0f0f;--s1:#181818;--s2:#202020;--s3:#2a2a2a;
+  --b1:#252525;--b2:#303030;
+  --t1:#edebe7;--t2:#888;--t3:#444;
+  --green:#3dd68c;--gd:#071f12;
+  --amber:#f5a623;--ad:#1e1508;
+  --red:#e05c5c;--rd:#1e0808;
+  --blue:#5b9cf6;--bd:#08152a;
+  --acc:#b8f04a;
+}
+html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);font-size:14px}
+.app{max-width:390px;margin:0 auto;height:100vh;display:flex;flex-direction:column}
+.nav{display:flex;background:var(--s1);border-top:1px solid var(--b1);flex-shrink:0;padding-bottom:max(env(safe-area-inset-bottom), 16px)}
+.nb{flex:1;padding:11px 4px 10px;border:none;background:none;color:var(--t3);font-family:'Inter',sans-serif;font-size:10px;font-weight:500;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;letter-spacing:.02em}
+.nb svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.6;flex-shrink:0}
+.nb.active{color:var(--acc)}
+.nb.active svg{stroke:var(--acc)}
+.screens{flex:1;overflow:hidden;position:relative}
+.screen{display:none;position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 14px 32px}
+.screen.active{display:block}
+/* Home */
+.home-header{padding:18px 0 10px;display:flex;align-items:center;justify-content:space-between}
+.home-month{font-size:13px;font-weight:600;color:var(--t2);letter-spacing:.04em;text-transform:uppercase}
+.home-nav{display:flex;gap:6px}
+.home-nav button{background:var(--s2);border:1px solid var(--b2);border-radius:8px;color:var(--t2);width:30px;height:30px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.day-card{background:var(--s1);border-radius:18px;padding:22px 20px 18px;border:1px solid var(--b1);margin-bottom:12px;touch-action:pan-y;user-select:none}
+.day-label{font-size:11px;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.day-date{font-size:13px;font-weight:500;color:var(--t2);margin-bottom:14px}
+.day-amount{font-size:48px;font-weight:700;letter-spacing:-1.5px;line-height:1}
+.day-amount.ok{color:var(--acc)}
+.day-amount.warn{color:var(--amber)}
+.day-amount.danger{color:var(--red)}
+.day-amount sup{font-size:20px;font-weight:400;opacity:.5}
+.day-sub{font-size:12px;color:var(--t2);margin-top:8px;line-height:1.6}
+.day-bar-track{height:4px;background:var(--s3);border-radius:2px;margin-top:14px;overflow:hidden}
+.day-bar-fill{height:100%;border-radius:2px;transition:width .4s ease}
+.summary-row{display:flex;justify-content:center;gap:16px;padding:2px 0 10px;font-size:12px;color:var(--t3)}
+.savings-strip{background:var(--gd);border:1px solid var(--green);border-radius:14px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.savings-strip.neg{background:var(--rd);border-color:var(--red)}
+.ss-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(61,214,140,.12)}
+.ss-icon.neg{background:rgba(224,92,92,.12)}
+.ss-icon svg{width:18px;height:18px;stroke:var(--green);fill:none;stroke-width:1.6}
+.ss-icon.neg svg{stroke:var(--red)}
+.ss-info{flex:1}
+.ss-label{font-size:11px;color:var(--green);opacity:.7;margin-bottom:2px}
+.ss-label.neg{color:var(--red)}
+.ss-val{font-size:20px;font-weight:700;color:var(--green)}
+.ss-val.neg{color:var(--red)}
+.ss-sub{font-size:11px;color:var(--green);opacity:.6;margin-top:2px}
+.ss-sub.neg{color:var(--red)}
+.ss-btn{background:none;border:1px solid rgba(61,214,140,.25);border-radius:8px;color:var(--green);padding:6px 10px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif}
+.ss-btn.neg{border-color:rgba(224,92,92,.25);color:var(--red)}
+.sec-head{display:flex;justify-content:space-between;align-items:center;margin:16px 0 10px}
+.sec-title{font-size:14px;font-weight:600;color:var(--t1)}
+.sec-btn{background:none;border:1px solid var(--b2);color:var(--t2);border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif}
+.tx-item{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--s1);border-radius:12px;margin-bottom:7px;border:1px solid var(--b1)}
+.tx-ico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px}
+.tx-info{flex:1;min-width:0}
+.tx-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-cat{font-size:11px;color:var(--t3);margin-top:1px}
+.tx-amt{font-size:14px;font-weight:600;flex-shrink:0;color:var(--red)}
+.tx-del{background:none;border:none;color:var(--t3);cursor:pointer;padding:6px;font-size:15px;flex-shrink:0}
+/* Bills */
+.bill-item{background:var(--s1);border-radius:12px;margin-bottom:7px;border:1px solid var(--b1);overflow:hidden}
+.bill-summary{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer}
+.bill-ico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.bill-info{flex:1;min-width:0}
+.bill-name{font-size:13px;font-weight:500;color:var(--t1)}
+.bill-name.paid-name{text-decoration:line-through;color:var(--t3)}
+.bill-meta{font-size:11px;color:var(--t3);margin-top:1px}
+.bill-right{text-align:right;flex-shrink:0}
+.bill-amt{font-size:14px;font-weight:600}
+.bill-badges{display:flex;gap:4px;margin-top:4px;justify-content:flex-end;flex-wrap:wrap}
+.bdg{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500}
+.bdg.soon{background:var(--ad);color:var(--amber)}
+.bdg.ok{background:var(--gd);color:var(--green)}
+.bdg.rec{background:var(--bd);color:var(--blue)}
+.bdg.pdb{background:var(--gd);color:var(--green)}
+.bdg.ov{background:var(--rd);color:var(--red)}
+.bill-chevron{color:var(--t3);font-size:14px;margin-left:6px;transition:transform .2s}
+.bill-chevron.open{transform:rotate(90deg)}
+.bill-detail{display:none;padding:0 14px 14px;border-top:1px solid var(--b1)}
+.bill-detail.open{display:block}
+.bill-detail-row{display:flex;justify-content:space-between;font-size:12px;color:var(--t2);padding:8px 0;border-bottom:1px solid var(--b1)}
+.bill-detail-row:last-child{border:none}
+.bdr-edit{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--t2);padding:8px 0;border-bottom:1px solid var(--b1)}
+.bdr-input{background:var(--s3);border:1px solid var(--b2);border-radius:7px;padding:4px 8px;font-family:'Inter',sans-serif;font-size:13px;color:var(--t1);width:110px;outline:none}
+.bdr-input:focus{border-color:var(--acc)}
+.pay-btn-full{width:100%;background:var(--gd);border:1px solid var(--green);color:var(--green);border-radius:10px;padding:11px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;margin-top:10px}
+.pay-btn-full.unpay{background:var(--s3);border-color:var(--b2);color:var(--t2)}
+.save-btn-full{width:100%;background:var(--acc);color:#0f0f0f;border:none;border-radius:10px;padding:11px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;margin-top:8px}
+.del-btn-full{width:100%;background:none;border:1px solid var(--rd);color:var(--red);border-radius:10px;padding:11px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;margin-top:8px}
+.month-note{font-size:11px;color:var(--green);opacity:.7;text-align:center;margin-top:6px}
+/* Income */
+.target-card{background:var(--s1);border:1px solid var(--acc);border-radius:16px;padding:16px 18px;margin-bottom:14px}
+.tc-label{font-size:11px;color:var(--acc);opacity:.7;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.tc-val{font-size:24px;font-weight:700;letter-spacing:-.5px}
+.tc-sub{font-size:12px;color:var(--t2);margin-top:4px}
+.tc-edit{background:none;border:1px solid var(--b2);color:var(--t2);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif}
+.income-row{display:flex;align-items:center;gap:10px;background:var(--s2);border-radius:12px;padding:12px 13px;border:1px solid var(--b1);margin-bottom:7px}
+.ir-info{flex:1}
+.ir-name{font-size:13px;font-weight:500}
+.ir-date{font-size:11px;color:var(--t3);margin-top:1px}
+.ir-amt{font-size:15px;font-weight:700;color:var(--green)}
+.ir-del{background:none;border:none;color:var(--t3);cursor:pointer;font-size:15px;padding:4px}
+.info-note{background:var(--s2);border-left:3px solid var(--acc);border-radius:0 10px 10px 0;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--t2);line-height:1.5}
+/* Stats */
+.stats-wrap{padding-top:18px}
+.pie-wrap{background:var(--s1);border-radius:16px;padding:16px;margin-bottom:14px;border:1px solid var(--b1)}
+.pie-title{font-size:13px;font-weight:600;color:var(--t2);margin-bottom:12px}
+.pie-row{display:flex;align-items:center;gap:16px}
+.pie-legend{flex:1;display:flex;flex-direction:column;gap:6px}
+.pie-leg-item{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--t2)}
+.pie-leg-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.pie-leg-pct{margin-left:auto;font-weight:500;color:var(--t1)}
+/* Save flash */
+.save-ind{position:fixed;top:16px;right:16px;background:var(--gd);color:var(--green);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;border:1px solid var(--green)}
+.save-ind.show{opacity:1}
+.empty{text-align:center;padding:28px 16px;color:var(--t3);font-size:13px}
+/* Modals */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:var(--s1);border-radius:20px 20px 0 0;padding:20px 18px;padding-bottom:calc(28px + env(safe-area-inset-bottom));width:100%;max-width:390px;overflow-y:auto;-webkit-overflow-scrolling:touch;max-height:92vh}
+.modal-handle{width:32px;height:4px;background:var(--b2);border-radius:2px;margin:0 auto 18px}
+.modal h3{font-size:18px;font-weight:700;margin-bottom:16px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:10px;color:var(--t3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:5px;font-weight:500}
+.field input,.field select{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:11px;padding:12px 13px;font-family:'Inter',sans-serif;font-size:16px;color:var(--t1);outline:none;-webkit-appearance:none}
+.field input:focus,.field select:focus{border-color:var(--acc)}
+.submit-btn{width:100%;background:var(--acc);color:#0f0f0f;border:none;border-radius:12px;padding:15px;font-family:'Inter',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;touch-action:manipulation}
+.danger-btn{width:100%;background:none;border:1px solid var(--rd);color:var(--red);border-radius:12px;padding:15px;font-family:'Inter',sans-serif;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;touch-action:manipulation}
+.close-x{float:right;background:var(--s3);border:none;color:var(--t2);width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:15px;line-height:28px;text-align:center;touch-action:manipulation}
+</style>
+</head>
+<body>
+<div class="save-ind" id="saveInd">Tallennettu ✓</div>
+<div class="app">
+<div class="screens">
+
+<div id="screen-home" class="screen active">
+  <div class="home-header">
+    <div class="home-month" id="homeMonthLabel"></div>
+    <div class="home-nav">
+      <button onclick="shiftDay(-1)">‹</button>
+      <button onclick="shiftDay(1)">›</button>
+    </div>
+  </div>
+  <div class="day-card" id="dayCard">
+    <div class="day-label" id="dayLabel">Päiväbudjetti jäljellä</div>
+    <div class="day-date" id="dayCardDate"></div>
+    <div class="day-amount ok" id="dayCardAmt"><sup>€</sup><span id="dayCardNum">0</span></div>
+    <div class="day-sub" id="dayCardSub"></div>
+    <div class="day-bar-track"><div class="day-bar-fill" id="dayBarFill" style="width:100%"></div></div>
+  </div>
+  <div class="summary-row" id="summaryRow"></div>
+  <div id="savingsCard"></div>
+  <div class="sec-head"><div class="sec-title" id="dayListTitle">Tämän päivän menot</div><button class="sec-btn" onclick="openExpModal()">+ Lisää</button></div>
+  <div id="dayTxList"></div>
+</div>
+
+<div id="screen-bills" class="screen">
+  <div class="home-header">
+    <div class="home-month" id="billMonthLabel"></div>
+    <div class="home-nav">
+      <button onclick="shiftBillMonth(-1)">‹</button>
+      <button onclick="shiftBillMonth(1)">›</button>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <div style="font-size:12px;color:var(--t3)" id="billMonthTotal"></div>
+    <button class="sec-btn" onclick="openBillModal()">+ Lisää</button>
+  </div>
+  <div id="billListEl"></div>
+</div>
+
+<div id="screen-stats" class="screen">
+  <div class="stats-wrap">
+    <div class="home-header">
+      <div class="home-month" id="statsMonthLabel"></div>
+      <div class="home-nav">
+        <button onclick="shiftStatsMonth(-1)">‹</button>
+        <button onclick="shiftStatsMonth(1)">›</button>
+      </div>
+    </div>
+    <div class="pie-wrap" id="monthPieWrap">
+      <div class="pie-title">Kuukauden menot</div>
+      <div id="monthPieContent"></div>
+    </div>
+    <div class="pie-wrap" id="alltimePieWrap">
+      <div class="pie-title">Kuukausittainen vertailu</div>
+      <div id="alltimePieContent"></div>
+    </div>
+  </div>
+</div>
+
+<div id="screen-income" class="screen">
+  <div style="padding-top:18px"></div>
+  <div id="targetSection"></div>
+  <div class="sec-head"><div class="sec-title">Tulomerkinnät</div><button class="sec-btn" onclick="openIncomeModal()">+ Lisää tulo</button></div>
+  <div id="incomeList"></div>
+</div>
+
+</div>
+<nav class="nav">
+  <button class="nb active" onclick="goTo('home',this)">
+    <svg viewBox="0 0 24 24"><path d="M3 12L12 3l9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg>Etusivu
+  </button>
+  <button class="nb" onclick="goTo('bills',this)">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Laskut
+  </button>
+  <button class="nb" onclick="goTo('stats',this)">
+    <svg viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>Tilastot
+  </button>
+  <button class="nb" onclick="goTo('income',this)">
+    <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Tulot
+  </button>
+</nav>
+</div>
+
+<!-- Modals -->
+<div class="overlay" id="expModal"><div class="modal">
+  <div class="modal-handle"></div>
+  <button class="close-x" onclick="closeModal('expModal')">×</button>
+  <h3>Lisää meno</h3>
+  <div class="field"><label>Summa (€)</label><input id="expAmt" type="number" inputmode="decimal" placeholder="0.00" step="0.01"/></div>
+  <div class="field"><label>Kategoria</label><select id="expCat"></select></div>
+  <button class="submit-btn" onclick="saveExp()">Tallenna</button>
+</div></div>
+
+<div class="overlay" id="billModal"><div class="modal">
+  <div class="modal-handle"></div>
+  <button class="close-x" onclick="closeModal('billModal')">×</button>
+  <h3>Lisää lasku</h3>
+  <div class="field"><label>Laskun nimi</label><input id="billName" placeholder="esim. Vuokra" autocomplete="off"/></div>
+  <div class="field"><label>Summa (€)</label><input id="billAmt" type="number" inputmode="decimal" placeholder="0.00" step="0.01"/></div>
+  <div class="field"><label>Eräpäivä (päivä kuusta)</label><input id="billDay" type="number" inputmode="numeric" placeholder="1–31" min="1" max="31"/></div>
+  <div class="field"><label>Tyyppi</label>
+    <select id="billType" onchange="toggleInstalment()">
+      <option value="once">Kertaluontoinen</option>
+      <option value="monthly">Kuukausittain toistuva</option>
+      <option value="instalment">Osamaksu</option>
+    </select>
+  </div>
+  <div class="field" id="instalmentField" style="display:none"><label>Maksuerien määrä</label><input id="instalmentCount" type="number" inputmode="numeric" placeholder="esim. 12" min="1"/></div>
+  <div class="field"><label>Kategoria</label><select id="billCat"></select></div>
+  <button class="submit-btn" onclick="saveBill()">Tallenna lasku</button>
+</div></div>
+
+<div class="overlay" id="incomeModal"><div class="modal">
+  <div class="modal-handle"></div>
+  <button class="close-x" onclick="closeModal('incomeModal')">×</button>
+  <h3>Lisää tulo</h3>
+  <div class="field"><label>Kuvaus</label><input id="incomeName" placeholder="esim. Palkka" autocomplete="off"/></div>
+  <div class="field"><label>Summa (€)</label><input id="incomeAmt" type="number" inputmode="decimal" placeholder="0.00" step="0.01"/></div>
+  <div class="field"><label>Päivämäärä</label><input id="incomeDate" type="date"/></div>
+  <button class="submit-btn" onclick="saveIncome()">Tallenna</button>
+</div></div>
+
+<div class="overlay" id="targetModal"><div class="modal">
+  <div class="modal-handle"></div>
+  <button class="close-x" onclick="closeModal('targetModal')">×</button>
+  <h3>Mihin asti rahat riittävät?</h3>
+  <div class="info-note">Aseta päivä johon asti saldo riittää — esim. seuraava palkkapäivä.</div>
+  <div class="field"><label>Tavoitepäivä</label><input id="targetDateInput" type="date"/></div>
+  <button class="submit-btn" onclick="saveTarget()">Aseta tavoite</button>
+</div></div>
+
+<div class="overlay" id="savingsModal"><div class="modal">
+  <div class="modal-handle"></div>
+  <button class="close-x" onclick="closeModal('savingsModal')">×</button>
+  <h3>Kuukauden säästöt</h3>
+  <div id="savingsModalContent"></div>
+</div></div>
+
+<div class="overlay" id="confirmModal"><div class="modal">
+  <div class="modal-handle"></div>
+  <h3 id="confirmTitle">Oletko varma?</h3>
+  <p style="color:var(--t2);font-size:13px;line-height:1.6;margin-bottom:20px" id="confirmText"></p>
+  <button class="danger-btn" id="confirmOkBtn">Vahvista</button>
+  <button class="submit-btn" style="background:var(--s3);color:var(--t1);margin-top:8px" onclick="closeModal('confirmModal')">Peruuta</button>
+</div></div>
+
+<script>
+const SKEY = 'budjetti_v2';
+const todayD = new Date();
+todayD.setHours(0,0,0,0);
+const todayStr = `${todayD.getFullYear()}-${String(todayD.getMonth()+1).padStart(2,'0')}-${String(todayD.getDate()).padStart(2,'0')}`;
+const thisMonth = todayStr.slice(0,7);
+
+let viewOffset = 0;
+let billMonthOffset = 0;
+let statsMonthOffset = 0;
+
+const CATS = [
+  {id:'food',   name:'Ruoka',       icon:'🛒', color:'#e07b39'},
+  {id:'fuel',   name:'Bensa',       icon:'⛽', color:'#3b82f6'},
+  {id:'car',    name:'Auto',        icon:'🚗', color:'#6366f1'},
+  {id:'dog',    name:'Koira',       icon:'🐕', color:'#f59e0b'},
+  {id:'home',   name:'Asuminen',    icon:'🏠', color:'#8b5cf6'},
+  {id:'loans',  name:'Lainat',      icon:'💳', color:'#e11d48'},
+  {id:'elec',   name:'Sähkö',       icon:'💡', color:'#facc15'},
+  {id:'ins',    name:'Vakuutukset', icon:'🛡️', color:'#06b6d4'},
+  {id:'ent',    name:'Viihde',      icon:'🎬', color:'#ec4899'},
+];
+
+const DEF = {
+  targetDate:'',
+  expenses:[],
+  bills:[],
+  paidMonths:{},
+  incomes:[],
+  // billOverrides: { "billId_YYYY-MM": { amount, dueDay } } — kuukausikohtaiset muutokset
+  billOverrides:{},
+  nextId:1,
+};
+
+function loadState(){
+  try{ const r=localStorage.getItem(SKEY); if(r) return Object.assign({},DEF,JSON.parse(r)); }catch(e){}
+  return JSON.parse(JSON.stringify(DEF));
+}
+let S = loadState();
+if(!S.billOverrides) S.billOverrides={};
+
+let saveTimer;
+function persist(){
+  try{ localStorage.setItem(SKEY,JSON.stringify(S)); }catch(e){}
+  const el=document.getElementById('saveInd');
+  el.classList.add('show');
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>el.classList.remove('show'),1800);
+}
+function uid(){ return S.nextId++; }
+
+// ── DATE HELPERS ──
+function localDateStr(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function dateStr(offset){
+  const d=new Date(todayD); d.setDate(d.getDate()+offset); return localDateStr(d);
+}
+function monthOf(ds){ return ds.slice(0,7); }
+function ymFromOffset(offset){
+  const d=new Date(todayD.getFullYear(), todayD.getMonth()+offset, 1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+function ymLabel(ym){
+  const mn=['Tammikuu','Helmikuu','Maaliskuu','Huhtikuu','Toukokuu','Kesäkuu',
+            'Heinäkuu','Elokuu','Syyskuu','Lokakuu','Marraskuu','Joulukuu'];
+  const d=new Date(ym+'-01T00:00:00');
+  return mn[d.getMonth()]+' '+d.getFullYear();
+}
+function fiFmt(ds,opts){ return new Date(ds+'T00:00:00').toLocaleDateString('fi-FI',opts); }
+function fmt(n){ return '€'+Math.abs(n).toFixed(2).replace('.',','); }
+function fmtI(n){ return (n<0?'-':'')+'€'+Math.abs(Math.round(n)); }
+function catById(id){ return CATS.find(c=>c.id===id)||CATS[0]; }
+
+// ── BILL HELPERS ──
+// Palauttaa laskut jotka ovat aktiivisia annetulle kuukaudelle (YYYY-MM)
+function billsForMonth(ym){
+  const ymD = new Date(ym+'-01T00:00:00');
+  return S.bills.filter(b => {
+    const startYm = b.startYm || monthOf(b.due||todayStr);
+    // Ei näytä ennen lisäyskuuta
+    if(ym < startYm) return false;
+    if(b.type==='once'){
+      return monthOf(b.due) === ym;
+    } else if(b.type==='monthly'){
+      return true;
+    } else if(b.type==='instalment'){
+      const start = new Date(startYm+'-01T00:00:00');
+      const monthIdx = (ymD.getFullYear()-start.getFullYear())*12+(ymD.getMonth()-start.getMonth());
+      return monthIdx >= 0 && monthIdx < (b.instalments||1);
+    }
+    return false;
+  }).map(b => {
+    const key = `${b.id}_${ym}`;
+    const ov = S.billOverrides[key]||{};
+    return {
+      ...b,
+      amount: ov.amount !== undefined ? ov.amount : b.amount,
+      dueDay: ov.dueDay !== undefined ? ov.dueDay : b.dueDay,
+    };
+  });
+}
+
+function isPaidInMonth(id, ym){ return (S.paidMonths[id]||[]).includes(ym); }
+function isPaidThisMonth(id){ return isPaidInMonth(id, thisMonth); }
+
+function daysLeft(){
+  if(!S.targetDate) return 1;
+  const t=new Date(S.targetDate+'T00:00:00');
+  return Math.max(1,Math.ceil((t-todayD)/864e5)+1);
+}
+
+// ── CORE BUDGET ──
+// Päiväbudjetti — kuittaus ei vaikuta, ainoastaan tulot ja laskut
+function dailyBudgetForDate(ds){
+  return dailyBudgetForMonth(monthOf(ds));
+}
+function dailyBudget(){ return dailyBudgetForDate(todayStr); }
+
+function spentOn(ds){
+  return S.expenses.filter(e=>e.type==='expense'&&e.date===ds).reduce((s,e)=>s+e.amount,0);
+}
+
+// Säästö per päivä (voi olla negatiivinen)
+// ── BUDJETTILASKENTA ──
+//
+// SÄÄSTÖT: perusbudjetti = avail / kuun_päivät (kiinteä, ei muutu)
+//          säästö per päivä = perusbudjetti - käytetty
+//
+// PÄIVÄBUDJETTI (tänään/tulevat): jäljellä / jäljellä_olevat_päivät
+//   mutta ei enemmän kuin perusbudjetti (säästöt ei nosta)
+//
+// MENNYT PÄIVÄ: näyttää sen päivän säästön (perusbudjetti - käytetty)
+
+// Kuun käytettävissä oleva summa
+function availForMonth(ym){
+  const income = S.incomes.filter(i=>i.date&&i.date.startsWith(ym)).reduce((s,i)=>s+i.amount,0);
+  if(income<=0) return 0;
+  const bills = billsForMonth(ym).reduce((s,b)=>s+b.amount,0);
+  return Math.max(0, income-bills);
+}
+
+// Perusbudjetti = avail / kuun päivät (kiinteä viite)
+function baseForMonth(ym){
+  const avail = availForMonth(ym);
+  if(avail<=0) return 0;
+  const ymD = new Date(ym+'-01T00:00:00');
+  const dim = new Date(ymD.getFullYear(),ymD.getMonth()+1,0).getDate();
+  return avail/dim;
+}
+
+// Päivän säästö vs. perusbudjetti (voi olla neg.)
+function savingsOnDay(ds){
+  if(ds>=todayStr) return 0;
+  return baseForMonth(monthOf(ds)) - spentOn(ds);
+}
+
+// Korjattu päiväbudjetti tänään/tulevat:
+// remaining = avail - kaikki menneet menot
+// päiväraha = min(base, remaining/dl) — säästöt ei nosta
+function adjustedDailyBudget(){
+  const ym = thisMonth;
+  const avail = availForMonth(ym);
+  if(avail<=0) return 0;
+  const base = baseForMonth(ym);
+  const dl = daysLeft();
+  const spentSoFar = S.expenses
+    .filter(e=>e.type==='expense'&&e.date&&e.date.startsWith(ym)&&e.date<todayStr)
+    .reduce((s,e)=>s+e.amount,0);
+  const remaining = avail - spentSoFar;
+  return Math.min(base, Math.max(0, remaining/dl));
+}
+
+// Menneen/tulevan kuun päiväbudjetti — baseForMonth riittää
+function dailyBudgetForDate(ds){ return baseForMonth(monthOf(ds)); }
+function dailyBudgetForMonth(ym){ return baseForMonth(ym); }
+function baseDailyBudget(){ return baseForMonth(thisMonth); }
+
+// ── SÄÄSTÖT ──
+function monthSavings(refDate){
+  const ref = refDate||dateStr(viewOffset);
+  const refD = new Date(ref+'T00:00:00');
+  const ym = `${refD.getFullYear()}-${String(refD.getMonth()+1).padStart(2,'0')}`;
+  const isCurrent = ym===thisMonth;
+  const lastDay = new Date(refD.getFullYear(),refD.getMonth()+1,0);
+  let total=0;
+  const d=new Date(refD.getFullYear(),refD.getMonth(),1);
+  while(d<=lastDay){
+    const ds=localDateStr(d);
+    if(isCurrent && ds>=todayStr) break;
+    total+=savingsOnDay(ds);
+    d.setDate(d.getDate()+1);
+  }
+  return total;
+}
+
+function monthSavingsDetail(refDate){
+  const ref=refDate||dateStr(viewOffset);
+  const refD=new Date(ref+'T00:00:00');
+  const ym=`${refD.getFullYear()}-${String(refD.getMonth()+1).padStart(2,'0')}`;
+  const isCurrent=ym===thisMonth;
+  const lastDay=new Date(refD.getFullYear(),refD.getMonth()+1,0);
+  const details=[];
+  const d=new Date(refD.getFullYear(),refD.getMonth(),1);
+  while(d<=lastDay){
+    const ds=localDateStr(d);
+    if(isCurrent && ds>=todayStr) break;
+    const s=savingsOnDay(ds);
+    if(s!==0) details.push({ds,amount:s});
+    d.setDate(d.getDate()+1);
+  }
+  return details;
+}
+function renderHome(){
+  const viewDate=dateStr(viewOffset);
+  const isT=viewDate===todayStr;
+  const isPast=viewOffset<0;
+  const vd=new Date(viewDate+'T00:00:00');
+  const mn=['Tammikuu','Helmikuu','Maaliskuu','Huhtikuu','Toukokuu','Kesäkuu',
+            'Heinäkuu','Elokuu','Syyskuu','Lokakuu','Marraskuu','Joulukuu'];
+  document.getElementById('homeMonthLabel').textContent=mn[vd.getMonth()]+' '+vd.getFullYear();
+
+  const viewYm = monthOf(viewDate);
+  const base = baseForMonth(viewYm);
+  const db = isT ? adjustedDailyBudget() : (viewYm===thisMonth && !isPast ? adjustedDailyBudget() : base);
+  const spent = spentOn(viewDate);
+  let leftover, label;
+  if(isT){ leftover=db-spent; label='Päiväbudjetti jäljellä'; }
+  else if(isPast){ leftover=savingsOnDay(viewDate); label=leftover>=0?'Säästit tänä päivänä':'Budjetti ylittyi'; }
+  else { leftover=db; label='Tuleva päiväbudjetti'; }
+
+  const pct = base>0 ? Math.max(0,Math.min(100,(isPast?Math.max(0,leftover):leftover)/base*100)) : 0;
+  const cls=leftover<0?'danger':pct<25?'warn':'ok';
+  const barColor=leftover<0?'var(--red)':pct<25?'var(--amber)':'var(--acc)';
+  document.getElementById('dayLabel').textContent=label;
+  document.getElementById('dayCardDate').textContent=isT?'Tänään · '+fiFmt(viewDate,{day:'numeric',month:'long'}):fiFmt(viewDate,{weekday:'long',day:'numeric',month:'long'});
+  const amtEl=document.getElementById('dayCardAmt');
+  amtEl.className='day-amount '+cls;
+  document.getElementById('dayCardNum').textContent=(leftover<0?'−':'')+Math.abs(leftover).toFixed(2).replace('.',',');
+  document.getElementById('dayCardSub').innerHTML=isT
+    ?`Päiväraha ${fmt(db)} · käytetty ${fmt(spent)}<br>Rahat riittävät <b style="color:var(--t1)">${S.targetDate?fiFmt(S.targetDate,{day:'numeric',month:'numeric'}):'—'}</b> asti · ${daysLeft()} pv`
+    :isPast
+      ?`Käytetty ${fmt(spent)} · päiväraja ${fmt(base)}`
+      :`Tuleva päiväraha ${fmt(db)}`;
+  document.getElementById('dayBarFill').style.cssText=`width:${pct}%;background:${barColor}`;
+
+  // Summary row
+  const allIncome=S.incomes.filter(i=>i.date&&i.date.startsWith(viewYm)).reduce((s,i)=>s+i.amount,0);
+  const allExp=S.expenses.filter(e=>e.type==='expense'&&e.date&&e.date.startsWith(viewYm)).reduce((s,e)=>s+e.amount,0);
+  const allBills=billsForMonth(viewYm).reduce((s,b)=>s+b.amount,0);
+  const totalExp=allExp+allBills;
+  document.getElementById('summaryRow').innerHTML=allIncome>0||totalExp>0
+    ?`<span>Tulot <span style="color:var(--green);font-weight:500">${fmt(allIncome)}</span></span>
+      <span style="color:var(--b2)">·</span>
+      <span>Menot <span style="color:var(--red);font-weight:500">${fmt(totalExp)}</span></span>`:'';
+
+  // Savings card
+  renderSavingsCard(viewDate);
+
+  // Day list
+  document.getElementById('dayListTitle').textContent=isT?'Tämän päivän menot':fiFmt(viewDate,{weekday:'long',day:'numeric',month:'short'})+' menot';
+  const txs=S.expenses.filter(e=>e.date===viewDate&&e.type==='expense');
+  document.getElementById('dayTxList').innerHTML=txs.length
+    ?txs.slice().reverse().map(txRow).join('')
+    :`<div class="empty">${isT?'Ei menoja tänään 🎉':'Ei merkintöjä'}</div>`;
+}
+
+function renderSavingsCard(refDate){
+  const el=document.getElementById('savingsCard');
+  if(!el) return;
+  const ms=monthSavings(refDate);
+  const vd=new Date((refDate||dateStr(viewOffset))+'T00:00:00');
+  const mn=['Tammikuu','Helmikuu','Maaliskuu','Huhtikuu','Toukokuu','Kesäkuu',
+            'Heinäkuu','Elokuu','Syyskuu','Lokakuu','Marraskuu','Joulukuu'];
+  const monthName=mn[vd.getMonth()]+' '+vd.getFullYear();
+  const neg=ms<0;
+  const col=neg?'neg':'';
+  el.innerHTML=`<div class="savings-strip${neg?' neg':''}" style="margin-bottom:14px">
+    <div class="ss-icon${neg?' neg':''}"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>
+    <div class="ss-info">
+      <div class="ss-label ${col}">Kertynyt säästö — ${monthName}</div>
+      <div class="ss-val ${col}">${neg?'−':''}${fmt(ms)}</div>
+      <div class="ss-sub ${col}">${neg?'ylikulutusta — pienentää tulevia päiviä':'ylijäämästä päivittäin'}</div>
+    </div>
+    <button class="ss-btn${neg?' neg':''}" onclick="openSavingsModal('${refDate||dateStr(viewOffset)}')">Katso</button>
+  </div>`;
+}
+
+function txRow(e){
+  const cat=catById(e.cat);
+  return `<div class="tx-item">
+    <div class="tx-ico" style="background:${cat.color}22">${cat.icon}</div>
+    <div class="tx-info"><div class="tx-name">${cat.name}</div><div class="tx-cat">${e.date}</div></div>
+    <div class="tx-amt">-${fmt(e.amount)}</div>
+    <button class="tx-del" onclick="delExp(${e.id})">×</button>
+  </div>`;
+}
+
+// ── BILLS ──
+function billViewYm(){ return ymFromOffset(billMonthOffset); }
+function shiftBillMonth(d){ billMonthOffset+=d; renderBills(); }
+
+function renderBills(){
+  const ym=billViewYm();
+  document.getElementById('billMonthLabel').textContent=ymLabel(ym);
+  const bills=billsForMonth(ym).sort((a,b)=>a.dueDay-b.dueDay);
+  const total=bills.reduce((s,b)=>s+b.amount,0);
+  const paidTotal=bills.filter(b=>isPaidInMonth(b.id,ym)).reduce((s,b)=>s+b.amount,0);
+  document.getElementById('billMonthTotal').innerHTML=total>0
+    ?`Yhteensä <b style="color:var(--t1)">${fmt(total)}</b> · Maksettu <b style="color:var(--green)">${fmt(paidTotal)}</b>`:'';
+  const el=document.getElementById('billListEl');
+  if(!bills.length){el.innerHTML='<div class="empty">Ei laskuja tälle kuulle</div>';return;}
+  const ymD=new Date(ym+'-01T00:00:00');
+  const recLabel={once:'Kertaluontoinen',monthly:'Kuukausittain',instalment:'Osamaksu'};
+  el.innerHTML=bills.map(b=>{
+    const cat=catById(b.cat);
+    const paid=isPaidInMonth(b.id,ym);
+    const daysInMonth = new Date(ymD.getFullYear(), ymD.getMonth()+1, 0).getDate();
+    const clampedDay = Math.min(b.dueDay, daysInMonth);
+    const dueD=new Date(ymD.getFullYear(),ymD.getMonth(),clampedDay);
+    const dueLbl=fiFmt(localDateStr(dueD),{day:'numeric',month:'numeric'});
+    const isCurrent=ym===thisMonth;
+    const diff=Math.ceil((dueD-todayD)/864e5);
+    const soon=isCurrent&&!paid&&diff>=0&&diff<=5;
+    const overdue=isCurrent&&!paid&&diff<0;
+    const key=`${b.id}_${ym}`;
+    const ov=S.billOverrides[key]||{};
+    const instInfo=b.type==='instalment'?` · ${getInstalmentIndex(b,ym)+1}/${b.instalments} erä`:'';
+    return `<div class="bill-item" id="bill_${b.id}">
+      <div class="bill-summary" onclick="toggleBillDetail(${b.id})">
+        <div class="bill-ico" style="background:${cat.color}22">${cat.icon}</div>
+        <div class="bill-info">
+          <div class="bill-name${paid?' paid-name':''}">${b.name}</div>
+          <div class="bill-meta">${dueLbl} · ${recLabel[b.type]||b.type}${instInfo}</div>
+        </div>
+        <div class="bill-right">
+          <div class="bill-amt">${fmt(b.amount)}</div>
+          <div class="bill-badges">
+            ${b.type!=='once'?'<span class="bdg rec">Toistuva</span>':''}
+            ${paid?'<span class="bdg pdb">✓ Maksettu</span>':''}
+          </div>
+        </div>
+        <span class="bill-chevron" id="chev_${b.id}">›</span>
+      </div>
+      <div class="bill-detail" id="detail_${b.id}">
+        <div class="bdr-edit"><span>Summa (€)</span><input class="bdr-input" id="ov_amt_${b.id}" type="number" value="${b.amount}" step="0.01"/></div>
+        <div class="bdr-edit"><span>Eräpäivä (pv)</span><input class="bdr-input" id="ov_day_${b.id}" type="number" value="${b.dueDay}" min="1" max="31"/></div>
+        <div class="bdr-edit"><span>Kategoria</span><select class="bdr-input" id="ov_cat_${b.id}">${CATS.map(c=>`<option value="${c.id}"${c.id===b.cat?' selected':''}>${c.icon} ${c.name}</option>`).join('')}</select></div>
+        <div class="bill-detail-row"><span>Tyyppi</span><span>${recLabel[b.type]||b.type}${instInfo}</span></div>
+        <div class="bill-detail-row"><span>Kategoria</span><span>${cat.icon} ${cat.name}</span></div>
+        <button class="save-btn-full" onclick="saveBillOverride(${b.id},'${ym}')">Tallenna muutos tälle kuulle</button>
+        <button class="pay-btn-full${paid?' unpay':''}" onclick="togglePaid(${b.id},'${ym}')">${paid?'↩ Peruuta maksettu':'✓ Merkitse maksetuksi'}</button>
+        <button class="del-btn-full" onclick="confirmDelBill(${b.id})">Poista lasku</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function getInstalmentIndex(b, ym){
+  const startYm=b.startYm||monthOf(b.due||todayStr);
+  const sd=new Date(startYm+'-01T00:00:00');
+  const yd=new Date(ym+'-01T00:00:00');
+  return (yd.getFullYear()-sd.getFullYear())*12+(yd.getMonth()-sd.getMonth());
+}
+
+function toggleBillDetail(id){
+  const det=document.getElementById('detail_'+id);
+  const chev=document.getElementById('chev_'+id);
+  const open=det.classList.toggle('open');
+  chev.classList.toggle('open',open);
+}
+
+function saveBillOverride(id, ym){
+  const amt=parseFloat(document.getElementById('ov_amt_'+id).value);
+  const day=parseInt(document.getElementById('ov_day_'+id).value);
+  const cat=document.getElementById('ov_cat_'+id).value;
+  const orig=S.bills.find(b=>b.id===id);
+  if(!orig) return;
+  // Kategoria muutetaan globaalisti laskulle
+  if(cat && cat!==orig.cat) orig.cat=cat;
+  // Summa ja eräpäivä kuukausikohtaisesti
+  const key=`${id}_${ym}`;
+  const ov={};
+  if(!isNaN(amt)&&amt!==orig.amount) ov.amount=amt;
+  if(!isNaN(day)&&day!==orig.dueDay) ov.dueDay=day;
+  if(Object.keys(ov).length>0) S.billOverrides[key]=ov;
+  else delete S.billOverrides[key];
+  persist(); renderBills();
+}
+
+function togglePaid(id,ym){
+  const month=ym||billViewYm();
+  if(!S.paidMonths[id]) S.paidMonths[id]=[];
+  const idx=S.paidMonths[id].indexOf(month);
+  if(idx===-1) S.paidMonths[id].push(month);
+  else S.paidMonths[id].splice(idx,1);
+  persist(); renderBills();
+}
+
+function confirmDelBill(id){
+  const b=S.bills.find(x=>x.id===id);
+  showConfirm('Poista lasku?',`"${b?b.name:'Lasku'}" poistetaan pysyvästi.`,()=>{
+    delete S.paidMonths[id];
+    Object.keys(S.billOverrides).filter(k=>k.startsWith(id+'_')).forEach(k=>delete S.billOverrides[k]);
+    S.bills=S.bills.filter(x=>x.id!==id);
+    persist(); renderAll(); closeModal('confirmModal');
+  });
+}
+
+// ── STATS ──
+function statsViewYm(){ return ymFromOffset(statsMonthOffset); }
+function shiftStatsMonth(d){ statsMonthOffset+=d; renderStats(); }
+
+function renderStats(){
+  const ym=statsViewYm();
+  document.getElementById('statsMonthLabel').textContent=ymLabel(ym);
+
+  // Month pie
+  const exps=S.expenses.filter(e=>e.type==='expense'&&e.date&&e.date.startsWith(ym));
+  const bills=billsForMonth(ym);
+  const catTotals={};
+  exps.forEach(e=>{ catTotals[e.cat]=(catTotals[e.cat]||0)+e.amount; });
+  bills.forEach(b=>{ catTotals[b.cat]=(catTotals[b.cat]||0)+b.amount; });
+  const total=Object.values(catTotals).reduce((s,v)=>s+v,0);
+  document.getElementById('monthPieContent').innerHTML=total>0
+    ?renderPie(catTotals,total)
+    :'<div class="empty">Ei menoja tälle kuulle</div>';
+
+  // Kuukausittainen vertailu — menot vs tulot vs budjetti
+  const allYms = [...new Set([
+    ...S.expenses.filter(e=>e.type==='expense').map(e=>monthOf(e.date)),
+    ...S.incomes.map(i=>monthOf(i.date)),
+  ])].sort();
+
+  if(!allYms.length){
+    document.getElementById('alltimePieContent').innerHTML='<div class="empty">Ei dataa vielä</div>';
+    return;
+  }
+
+  const monthData = allYms.map(y=>{
+    const exp = S.expenses.filter(e=>e.type==='expense'&&monthOf(e.date)===y).reduce((s,e)=>s+e.amount,0);
+    const bl = billsForMonth(y).reduce((s,b)=>s+b.amount,0);
+    const inc = S.incomes.filter(i=>monthOf(i.date)===y).reduce((s,i)=>s+i.amount,0);
+    const totalExp = exp+bl;
+    const ms = monthSavings(y+'-01');
+    return {y, exp: totalExp, inc, ms};
+  });
+
+  const maxVal = Math.max(...monthData.map(d=>Math.max(d.exp, d.inc)), 1);
+  const isSelected = y => y===ym;
+
+  document.getElementById('alltimePieContent').innerHTML = `
+    <div style="font-size:11px;color:var(--t3);display:flex;gap:12px;margin-bottom:10px">
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--red);margin-right:4px"></span>Menot</span>
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--green);margin-right:4px"></span>Tulot</span>
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--acc);margin-right:4px"></span>Säästöt</span>
+    </div>
+    ${monthData.slice().reverse().map(({y,exp,inc,ms})=>{
+      const sel = isSelected(y);
+      const expPct = Math.round(exp/maxVal*100);
+      const incPct = Math.round(inc/maxVal*100);
+      const msPct = ms>0 ? Math.round(ms/maxVal*100) : 0;
+      const mn=['Tammi','Helmi','Maalis','Huhti','Touko','Kesä','Heinä','Elo','Syys','Loka','Marras','Joulu'];
+      const d=new Date(y+'-01T00:00:00');
+      const lbl=mn[d.getMonth()]+' '+d.getFullYear();
+      return `<div style="margin-bottom:12px;opacity:${sel?1:.65}">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px">
+          <span style="font-weight:${sel?600:400};color:${sel?'var(--acc)':'var(--t2)'}">${lbl}</span>
+          <span style="color:var(--t2);font-size:11px">${fmt(exp)} / ${fmt(inc)} = <span style="color:${inc-exp>=0?'var(--green)':'var(--red)'};font-weight:500">${inc-exp>=0?'+':''}${fmtI(inc-exp)}</span></span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <div style="height:6px;background:var(--s3);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${expPct}%;background:var(--red);border-radius:3px;opacity:.85"></div>
+          </div>
+          <div style="height:6px;background:var(--s3);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${incPct}%;background:var(--green);border-radius:3px;opacity:.85"></div>
+          </div>
+          ${msPct>0?`<div style="height:4px;background:var(--s3);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${msPct}%;background:var(--acc);border-radius:3px;opacity:.85"></div>
+          </div>`:''}
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
+function renderPie(catTotals, total){
+  const sorted=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]);
+  const R=54, cx=64, cy=64;
+  let startAngle=-Math.PI/2;
+  let paths='';
+  sorted.forEach(([id,val])=>{
+    const cat=catById(id);
+    const angle=(val/total)*Math.PI*2;
+    const endAngle=startAngle+angle;
+    const large=angle>Math.PI?1:0;
+    const x1=cx+R*Math.cos(startAngle), y1=cy+R*Math.sin(startAngle);
+    const x2=cx+R*Math.cos(endAngle),   y2=cy+R*Math.sin(endAngle);
+    paths+=`<path d="M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} A${R},${R} 0 ${large},1 ${x2.toFixed(1)},${y2.toFixed(1)} Z" fill="${cat.color}" opacity=".85"/>`;
+    startAngle=endAngle;
+  });
+  const legend=sorted.map(([id,val])=>{
+    const cat=catById(id);
+    const pct=Math.round(val/total*100);
+    return `<div class="pie-leg-item">
+      <div class="pie-leg-dot" style="background:${cat.color}"></div>
+      <span>${cat.icon} ${cat.name}</span>
+      <span class="pie-leg-pct">${fmt(val)} · ${pct}%</span>
+    </div>`;
+  }).join('');
+  return `<div class="pie-row">
+    <svg width="128" height="128" viewBox="0 0 128 128" style="flex-shrink:0">
+      ${paths}
+      <circle cx="${cx}" cy="${cy}" r="28" fill="var(--s1)"/>
+      <text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="11" fill="var(--t2)" font-family="Inter">${fmt(total)}</text>
+    </svg>
+    <div class="pie-legend">${legend}</div>
+  </div>`;
+}
+
+// ── INCOME ──
+function renderIncome(){
+  const tFmt=S.targetDate?fiFmt(S.targetDate,{day:'numeric',month:'long'}):'Ei asetettu';
+  document.getElementById('targetSection').innerHTML=`
+    <div class="target-card">
+      <div class="tc-label">Mihin asti rahat riittävät</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div><div class="tc-val">${tFmt}</div><div class="tc-sub">${daysLeft()} päivää · päiväraha ${fmt(adjustedDailyBudget())}</div></div>
+        <button class="tc-edit" style="margin-left:auto" onclick="openTargetModal()">Muuta</button>
+      </div>
+    </div>`;
+  const byMonth={};
+  S.incomes.forEach(i=>{ const ym=i.date?i.date.slice(0,7):thisMonth; if(!byMonth[ym])byMonth[ym]=[]; byMonth[ym].push(i); });
+  const months=Object.keys(byMonth).sort((a,b)=>b.localeCompare(a));
+  const el=document.getElementById('incomeList');
+  if(!months.length){el.innerHTML='<div class="empty">Ei tulomerkintöjä</div>';return;}
+  el.innerHTML=months.map(ym=>{
+    const total=byMonth[ym].reduce((s,i)=>s+i.amount,0);
+    return `<div style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-size:12px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.04em">${ymLabel(ym)}</div>
+        <div style="font-size:13px;font-weight:700;color:var(--green)">${fmt(total)}</div>
+      </div>
+      ${byMonth[ym].map(i=>`<div class="income-row">
+        <div class="ir-info"><div class="ir-name">${i.name}</div><div class="ir-date">${i.date}</div></div>
+        <div class="ir-amt">+${fmt(i.amount)}</div>
+        <button class="ir-del" onclick="delIncome(${i.id})">×</button>
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+
+
+
+function renderAll(){ renderHome(); renderBills(); renderStats(); renderIncome(); }
+
+// ── NAV ──
+function goTo(screen,btn){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('screen-'+screen).classList.add('active');
+  btn.classList.add('active');
+  renderAll();
+}
+
+// ── MODALS ──
+function openModal(id){
+  const el = document.getElementById(id);
+  el.classList.add('open');
+  // Reset scroll to top so touch targets are in correct position on iOS
+  const modal = el.querySelector('.modal');
+  if(modal) modal.scrollTop = 0;
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.overlay').forEach(ov=>{
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('open');});
+});
+
+function populateCatSelect(id){
+  document.getElementById(id).innerHTML=CATS.map(c=>`<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+}
+function openExpModal(){ populateCatSelect('expCat'); openModal('expModal'); }
+function openBillModal(){
+  populateCatSelect('billCat');
+  document.getElementById('billType').value='monthly';
+  document.getElementById('instalmentField').style.display='none';
+  openModal('billModal');
+}
+function openIncomeModal(){ document.getElementById('incomeDate').value=todayStr; openModal('incomeModal'); }
+function openTargetModal(){ document.getElementById('targetDateInput').value=S.targetDate||''; openModal('targetModal'); }
+function toggleInstalment(){
+  const v=document.getElementById('billType').value;
+  document.getElementById('instalmentField').style.display=v==='instalment'?'block':'none';
+}
+
+function openSavingsModal(refDate){
+  const ref=refDate||dateStr(viewOffset);
+  const ms=monthSavings(ref);
+  const details=monthSavingsDetail(ref);
+  const refD=new Date(ref+'T00:00:00');
+  const mn=['Tammikuu','Helmikuu','Maaliskuu','Huhtikuu','Toukokuu','Kesäkuu','Heinäkuu','Elokuu','Syyskuu','Lokakuu','Marraskuu','Joulukuu'];
+  const monthName=mn[refD.getMonth()]+' '+refD.getFullYear();
+  const neg=ms<0;
+  document.getElementById('savingsModalContent').innerHTML=`
+    <div style="background:${neg?'var(--rd)':'var(--gd)'};border:1px solid ${neg?'var(--red)':'var(--green)'};border-radius:12px;padding:16px;margin-bottom:16px">
+      <div style="font-size:11px;color:${neg?'var(--red)':'var(--green)'};opacity:.7;margin-bottom:4px">${monthName}</div>
+      <div style="font-size:28px;font-weight:700;color:${neg?'var(--red)':'var(--green)'}">${neg?'−':''}${fmt(ms)}</div>
+      <div style="font-size:12px;opacity:.6;margin-top:4px;color:${neg?'var(--red)':'var(--green)'}">${details.length} päivää</div>
+    </div>
+    ${details.map(({ds,amount})=>`
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--b1);font-size:13px">
+        <span style="color:var(--t2)">${fiFmt(ds,{weekday:'short',day:'numeric',month:'short'})}</span>
+        <span style="color:${amount>=0?'var(--green)':'var(--red)'};font-weight:600">${amount>=0?'+':'−'}${fmt(amount)}</span>
+      </div>`).join('')}`;
+  openModal('savingsModal');
+}
+
+function showConfirm(title,text,onOk){
+  document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmText').textContent=text;
+  document.getElementById('confirmOkBtn').onclick=onOk;
+  openModal('confirmModal');
+}
+
+// ── CRUD ──
+function saveExp(){
+  const amt=parseFloat(document.getElementById('expAmt').value);
+  const cat=document.getElementById('expCat').value;
+  if(!amt||amt<=0) return;
+  S.expenses.push({id:uid(),amount:amt,cat,type:'expense',date:dateStr(viewOffset)});
+  document.getElementById('expAmt').value='';
+  closeModal('expModal'); persist(); renderAll();
+}
+
+function saveBill(){
+  const name=document.getElementById('billName').value.trim();
+  const amount=parseFloat(document.getElementById('billAmt').value);
+  const dueDay=parseInt(document.getElementById('billDay').value)||1;
+  const type=document.getElementById('billType').value;
+  const cat=document.getElementById('billCat').value;
+  const instalments=type==='instalment'?parseInt(document.getElementById('instalmentCount').value)||1:undefined;
+  if(!name||!amount) return;
+  const startYm=billViewYm();
+  const dueDate=`${startYm}-${String(dueDay).padStart(2,'0')}`;
+  S.bills.push({id:uid(),name,amount,dueDay,due:dueDate,type,cat,startYm,instalments});
+  document.getElementById('billName').value='';
+  document.getElementById('billAmt').value='';
+  document.getElementById('billDay').value='';
+  closeModal('billModal'); persist(); renderAll();
+}
+
+function saveIncome(){
+  const name=document.getElementById('incomeName').value.trim();
+  const amount=parseFloat(document.getElementById('incomeAmt').value);
+  const date=document.getElementById('incomeDate').value||todayStr;
+  if(!name||!amount) return;
+  S.incomes.push({id:uid(),name,amount,date});
+  document.getElementById('incomeName').value='';
+  document.getElementById('incomeAmt').value='';
+  closeModal('incomeModal'); persist(); renderAll();
+}
+
+function saveTarget(){
+  const val=document.getElementById('targetDateInput').value;
+  if(val) S.targetDate=val;
+  closeModal('targetModal'); persist(); renderAll();
+}
+
+function delExp(id){ S.expenses=S.expenses.filter(x=>x.id!==id); persist(); renderAll(); }
+function delIncome(id){
+  const i=S.incomes.find(x=>x.id===id);
+  showConfirm('Poista tulo?',`"${i?i.name:'Tulo'}" poistetaan pysyvästi.`,()=>{
+    S.incomes=S.incomes.filter(x=>x.id!==id);
+    persist(); renderAll(); closeModal('confirmModal');
+  });
+}
+
+// ── SWIPE ──
+(function(){
+  let sx=0,sy=0;
+  const card=()=>document.getElementById('dayCard');
+  document.addEventListener('touchstart',e=>{ if(!card().contains(e.target))return; sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
+  document.addEventListener('touchend',e=>{
+    if(!card().contains(e.target))return;
+    const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)*1.5) shiftDay(dx>0?-1:1);
+  },{passive:true});
+})();
+
+function shiftDay(d){ viewOffset=Math.max(-180,Math.min(365,viewOffset+d)); renderHome(); }
+
+renderAll();
+</script>
+</body>
+</html>
