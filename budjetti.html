@@ -907,7 +907,12 @@ function openBillModal(){
   openModal('billModal');
 }
 function openIncomeModal(){ document.getElementById('incomeDate').value=todayStr; openModal('incomeModal'); }
-function openTargetModal(){ document.getElementById('targetDateInput').value=S.targetDate||''; openModal('targetModal'); }
+function openTargetModal(){
+  const d=new Date(todayD.getFullYear(),todayD.getMonth()+1,0);
+  const defaultDate=localDateStr(d);
+  document.getElementById('targetDateInput').value=S.targetDate||defaultDate;
+  openModal('targetModal');
+}
 function toggleInstalment(){
   document.getElementById('instalmentField').style.display=document.getElementById('billType').value==='instalment'?'block':'none';
 }
