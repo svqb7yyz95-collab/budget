@@ -90,7 +90,6 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 .bill-chevron{color:var(--t3);font-size:14px;margin-left:6px;transition:transform .2s}
 .bill-chevron.open{transform:rotate(90deg)}
 .bill-item.ignored{background:var(--ad);border-color:var(--amber);opacity:.75}
-.pay-btn-full.ignored{background:var(--ad);border-color:var(--amber);color:var(--amber)}
 .bill-detail{display:none;padding:0 14px 14px;border-top:1px solid var(--b1)}
 .bill-detail.open{display:block}
 .bill-detail-row{display:flex;justify-content:space-between;font-size:12px;color:var(--t2);padding:8px 0;border-bottom:1px solid var(--b1)}
@@ -100,6 +99,8 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 .bdr-input:focus{border-color:var(--acc)}
 .pay-btn-full{width:100%;background:var(--gd);border:1px solid var(--green);color:var(--green);border-radius:10px;padding:11px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;margin-top:10px}
 .pay-btn-full.unpay{background:var(--s3);border-color:var(--b2);color:var(--t2)}
+.ignore-btn-full{width:100%;background:var(--amber);border:1px solid var(--amber);color:#0f0f0f;border-radius:10px;padding:11px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;margin-top:10px}
+.ignore-btn-full.active{font-weight:600}
 .save-btn-full{width:100%;background:var(--acc);color:#0f0f0f;border:none;border-radius:10px;padding:11px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;margin-top:8px}
 .del-btn-full{width:100%;background:none;border:1px solid var(--rd);color:var(--red);border-radius:10px;padding:11px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;margin-top:8px}
 .month-note{font-size:11px;color:var(--green);opacity:.7;text-align:center;margin-top:6px}
@@ -640,7 +641,7 @@ function renderBills(){
         <div class="bill-detail-row"><span>Tyyppi</span><span>${recLabel[b.type]||b.type}${instInfo}</span></div>
         <div class="bill-detail-row"><span>Kategoria</span><span>${cat.icon} ${cat.name}</span></div>
         <button class="save-btn-full" onclick="saveBillOverride(${b.id},'${ym}')">Tallenna muutos tälle kuulle</button>
-        <button class="pay-btn-full${isIgnoredBill(b.id,ym)?' ignored':''}" onclick="toggleIgnoreBill(${b.id},'${ym}')">${isIgnoredBill(b.id,ym)?'✓ Jätetty huomiotta':'Jätä huomiotta budjetista'}</button>
+        <button class="ignore-btn-full${isIgnoredBill(b.id,ym)?' active':''}" onclick="toggleIgnoreBill(${b.id},'${ym}')">${isIgnoredBill(b.id,ym)?'✓ Palauta lasku kuulle':'Jätä huomiotta budjetista'}</button>
         <button class="pay-btn-full${paid?' unpay':''}" onclick="togglePaid(${b.id},'${ym}')">${paid?'&#8617; Peruuta maksettu':'&#10003; Merkitse maksetuksi'}</button>
         <button class="del-btn-full" onclick="confirmDelBill(${b.id})">Poista lasku</button>
       </div>
