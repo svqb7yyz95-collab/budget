@@ -354,6 +354,7 @@ const DEF = {
   paidMonths:{},
   incomes:[],
   billOverrides:{},
+  ignoredBills:{},
   nextId:1,
 };
 
@@ -436,7 +437,7 @@ function spentOn(ds){
 function availForMonth(ym){
   const income = S.incomes.filter(i=>i.date&&i.date.startsWith(ym)).reduce((s,i)=>s+i.amount,0);
   if(income<=0) return 0;
-  const bills = billsForMonth(ym).reduce((s,b)=>s+b.amount,0);
+  const bills = billsForMonth(ym).filter(b=>!isIgnoredBill(b.id,ym)).reduce((s,b)=>s+b.amount,0);
   return Math.max(0, income-bills);
 }
 
@@ -582,6 +583,13 @@ function txRow(e){
   </div>`;
 }
 
+function isIgnoredBill(id,ym){ return S.ignoredBills[`${id}_${ym}`]||false; }
+function toggleIgnoreBill(id,ym){
+  const key=`${id}_${ym}`;
+  S.ignoredBills[key]=!S.ignoredBills[key];
+  if(!S.ignoredBills[key]) delete S.ignoredBills[key];
+  persist(); renderBills();
+}
 function billViewYm(){ return ymFromOffset(billMonthOffset); }
 function shiftBillMonth(d){ billMonthOffset+=d; renderBills(); }
 
@@ -630,6 +638,7 @@ function renderBills(){
         <div class="bill-detail-row"><span>Tyyppi</span><span>${recLabel[b.type]||b.type}${instInfo}</span></div>
         <div class="bill-detail-row"><span>Kategoria</span><span>${cat.icon} ${cat.name}</span></div>
         <button class="save-btn-full" onclick="saveBillOverride(${b.id},'${ym}')">Tallenna muutos tälle kuulle</button>
+        <button class="pay-btn-full${isIgnoredBill(b.id,ym)?' unpay':''}" onclick="toggleIgnoreBill(${b.id},'${ym}')">${isIgnoredBill(b.id,ym)?'✓ Jätetty huomiotta':'Jätä huomiotta budjetista'}</button>
         <button class="pay-btn-full${paid?' unpay':''}" onclick="togglePaid(${b.id},'${ym}')">${paid?'&#8617; Peruuta maksettu':'&#10003; Merkitse maksetuksi'}</button>
         <button class="del-btn-full" onclick="confirmDelBill(${b.id})">Poista lasku</button>
       </div>
