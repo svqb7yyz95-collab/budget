@@ -369,7 +369,6 @@ function loadState(){
 let S = loadState();
 if(!S.billOverrides) S.billOverrides={};
 if(!S.migratedElec){ S.expenses.forEach(e=>{ if(e.cat==='elec') e.cat='home'; }); S.bills.forEach(b=>{ if(b.cat==='elec') b.cat='home'; }); S.migratedElec=true; persist(); }
-if(!S.targetDate){ const d=new Date(todayD.getFullYear(),todayD.getMonth()+1,0); S.targetDate=localDateStr(d); persist(); }
 
 let saveTimer;
 function persist(){
@@ -777,6 +776,7 @@ function renderPie(catTotals, total){
 }
 
 function renderIncome(){
+  if(!S.targetDate){ const d=new Date(todayD.getFullYear(),todayD.getMonth()+1,0); S.targetDate=localDateStr(d); persist(); }
   const tFmt=S.targetDate?fiFmt(S.targetDate,{day:'numeric',month:'long'}):'Ei asetettu';
   document.getElementById('targetSection').innerHTML=`
     <div class="target-card">
