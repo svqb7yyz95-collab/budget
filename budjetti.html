@@ -369,6 +369,7 @@ function loadState(){
 let S = loadState();
 if(!S.billOverrides) S.billOverrides={};
 if(!S.migratedElec){ S.expenses.forEach(e=>{ if(e.cat==='elec') e.cat='home'; }); S.bills.forEach(b=>{ if(b.cat==='elec') b.cat='home'; }); S.migratedElec=true; persist(); }
+if(!S.targetDate){ const d=new Date(todayD.getFullYear(),todayD.getMonth()+1,0); S.targetDate=localDateStr(d); persist(); }
 
 let saveTimer;
 function persist(){
@@ -985,7 +986,7 @@ function saveIncome(){
 function saveTarget(){
   const val=document.getElementById('targetDateInput').value;
   if(val) S.targetDate=val;
-  closeModal('targetModal'); persist(); renderAll();
+  persist(); closeModal('targetModal'); renderAll();
 }
 
 function delExp(id){ S.expenses=S.expenses.filter(x=>x.id!==id); persist(); renderAll(); }
