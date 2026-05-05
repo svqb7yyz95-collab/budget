@@ -89,6 +89,8 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 .bdg.ov{background:var(--rd);color:var(--red)}
 .bill-chevron{color:var(--t3);font-size:14px;margin-left:6px;transition:transform .2s}
 .bill-chevron.open{transform:rotate(90deg)}
+.bill-item.ignored{background:var(--ad);border-color:var(--amber);opacity:.75}
+.pay-btn-full.ignored{background:var(--ad);border-color:var(--amber);color:var(--amber)}
 .bill-detail{display:none;padding:0 14px 14px;border-top:1px solid var(--b1)}
 .bill-detail.open{display:block}
 .bill-detail-row{display:flex;justify-content:space-between;font-size:12px;color:var(--t2);padding:8px 0;border-bottom:1px solid var(--b1)}
@@ -615,7 +617,7 @@ function renderBills(){
     const isCurrent=ym===thisMonth;
     const diff=Math.ceil((dueD-todayD)/864e5);
     const instInfo=b.type==='instalment'?` · ${getInstalmentIndex(b,ym)+1}/${b.instalments} erä`:'';
-    return `<div class="bill-item" id="bill_${b.id}">
+    return `<div class="bill-item${isIgnoredBill(b.id,ym)?' ignored':''}" id="bill_${b.id}">
       <div class="bill-summary" onclick="toggleBillDetail(${b.id})">
         <div class="bill-ico" style="background:${cat.color}22">${cat.icon}</div>
         <div class="bill-info">
@@ -638,7 +640,7 @@ function renderBills(){
         <div class="bill-detail-row"><span>Tyyppi</span><span>${recLabel[b.type]||b.type}${instInfo}</span></div>
         <div class="bill-detail-row"><span>Kategoria</span><span>${cat.icon} ${cat.name}</span></div>
         <button class="save-btn-full" onclick="saveBillOverride(${b.id},'${ym}')">Tallenna muutos tälle kuulle</button>
-        <button class="pay-btn-full${isIgnoredBill(b.id,ym)?' unpay':''}" onclick="toggleIgnoreBill(${b.id},'${ym}')">${isIgnoredBill(b.id,ym)?'✓ Jätetty huomiotta':'Jätä huomiotta budjetista'}</button>
+        <button class="pay-btn-full${isIgnoredBill(b.id,ym)?' ignored':''}" onclick="toggleIgnoreBill(${b.id},'${ym}')">${isIgnoredBill(b.id,ym)?'✓ Jätetty huomiotta':'Jätä huomiotta budjetista'}</button>
         <button class="pay-btn-full${paid?' unpay':''}" onclick="togglePaid(${b.id},'${ym}')">${paid?'&#8617; Peruuta maksettu':'&#10003; Merkitse maksetuksi'}</button>
         <button class="del-btn-full" onclick="confirmDelBill(${b.id})">Poista lasku</button>
       </div>
