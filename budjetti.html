@@ -368,8 +368,7 @@ function loadState(){
 
 let S = loadState();
 if(!S.billOverrides) S.billOverrides={};
-S.expenses.forEach(e=>{ if(e.cat==='elec') e.cat='home'; });
-S.bills.forEach(b=>{ if(b.cat==='elec') b.cat='home'; });
+if(!S.migratedElec){ S.expenses.forEach(e=>{ if(e.cat==='elec') e.cat='home'; }); S.bills.forEach(b=>{ if(b.cat==='elec') b.cat='home'; }); S.migratedElec=true; persist(); }
 
 let saveTimer;
 function persist(){
