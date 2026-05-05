@@ -541,7 +541,7 @@ function renderHome(){
   document.getElementById('dayBarFill').style.cssText=`width:${pct}%;background:${barColor}`;
   const allIncome=S.incomes.filter(i=>i.date&&i.date.startsWith(viewYm)).reduce((s,i)=>s+i.amount,0);
   const allExp=S.expenses.filter(e=>e.type==='expense'&&e.date&&e.date.startsWith(viewYm)).reduce((s,e)=>s+e.amount,0);
-  const allBills=billsForMonth(viewYm).reduce((s,b)=>s+b.amount,0);
+  const allBills=billsForMonth(viewYm).filter(b=>!isIgnoredBill(b.id,viewYm)).reduce((s,b)=>s+b.amount,0);
   const totalExp=allExp+allBills;
   document.getElementById('summaryRow').innerHTML=allIncome>0||totalExp>0
     ?`<span>Tulot <span style="color:var(--green);font-weight:500">${fmt(allIncome)}</span></span>
