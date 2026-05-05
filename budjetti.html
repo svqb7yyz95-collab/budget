@@ -985,9 +985,11 @@ function saveIncome(){
 
 function saveTarget(){
   const val=document.getElementById('targetDateInput').value;
-  if(val) { S.targetDate=val; persist(); }
+  console.log('saveTarget called, val=', val);
+  if(val) { S.targetDate=val; persist(); console.log('saved, targetDate=', S.targetDate); }
   closeModal('targetModal');
   renderIncome();
+  console.log('done');
 }
 
 function delExp(id){ S.expenses=S.expenses.filter(x=>x.id!==id); persist(); renderAll(); }
