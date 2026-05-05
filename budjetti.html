@@ -600,8 +600,9 @@ function renderBills(){
   const ym=billViewYm();
   document.getElementById('billMonthLabel').textContent=ymLabel(ym);
   const bills=billsForMonth(ym).sort((a,b)=>a.dueDay-b.dueDay);
-  const total=bills.reduce((s,b)=>s+b.amount,0);
-  const paidTotal=bills.filter(b=>isPaidInMonth(b.id,ym)).reduce((s,b)=>s+b.amount,0);
+  const activeBills=bills.filter(b=>!isIgnoredBill(b.id,ym));
+  const total=activeBills.reduce((s,b)=>s+b.amount,0);
+  const paidTotal=activeBills.filter(b=>isPaidInMonth(b.id,ym)).reduce((s,b)=>s+b.amount,0);
   document.getElementById('billMonthTotal').innerHTML=total>0
     ?`Yhteensä <b style="color:var(--t1)">${fmt(total)}</b> · Maksettu <b style="color:var(--green)">${fmt(paidTotal)}</b>`:'';
   const el=document.getElementById('billListEl');
