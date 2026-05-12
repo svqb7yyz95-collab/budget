@@ -178,9 +178,12 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
           <button onclick="shiftBillMonth(1)">&#8250;</button>
         </div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:6px">
         <div style="font-size:12px;color:var(--t3)" id="billMonthTotal"></div>
-        <button class="sec-btn" onclick="openBillModal()">+ Lisää</button>
+        <div style="display:flex;gap:6px">
+          <button class="sec-btn" onclick="openManageBillsModal()">⚙ Hallinnoi</button>
+          <button class="sec-btn" onclick="openBillModal()">+ Lisää</button>
+        </div>
       </div>
       <div id="billListEl"></div>
     </div>
@@ -239,6 +242,14 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 </div>
 
 <!-- Modals -->
+<div class="overlay" id="manageBillsModal"><div class="modal">
+  <div class="modal-handle"></div>
+  <button class="close-x" onclick="closeModal('manageBillsModal')">&#215;</button>
+  <h3>Hallinnoi laskuja</h3>
+  <div style="font-size:12px;color:var(--t2);margin-bottom:14px;line-height:1.5">Muokkaukset ja poistot koskevat vain tulevaisuuden kuukausia. Menneisyyttä ei voi muuttaa.</div>
+  <div id="manageBillsList"></div>
+</div></div>
+
 <div class="overlay" id="expModal"><div class="modal">
   <div class="modal-handle"></div>
   <button class="close-x" onclick="closeModal('expModal')">&#215;</button>
@@ -703,6 +714,32 @@ function confirmDelBill(id){
     Object.keys(S.billOverrides).filter(k=>k.startsWith(id+'_')).forEach(k=>delete S.billOverrides[k]);
     S.bills=S.bills.filter(x=>x.id!==id);
     persist(); renderAll(); closeModal('confirmModal');
+  });
+}
+
+function openManageBillsModal(){
+  const recurring=S.bills.filter(b=>b.type!=='once');
+  const el=document.getElementById('manageBillsList');
+  if(!recurring.length){ el.innerHTML='<div class="empty">Ei toistuvia laskuja</div>'; openModal('manageBillsModal'); return; }
+  el.innerHTML=recurring.map(b=>{
+    const cat=catById(b.cat);
+    return `<div style="background:var(--s2);border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid var(--b1);display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-size:13px;font-weight:500;color:var(--t1)">${b.name}</div><div style="font-size:11px;color:var(--t3);margin-top:4px">${fmt(b.amount)} · ${b.type==='monthly'?'Kuukausittain':'Osamaksu'}</div></div>
+      <div style="display:flex;gap:6px">
+        <button class="sec-btn" style="padding:5px 10px" onclick="confirmDeleteBillGlobally(${b.id})">Poista</button>
+      </div>
+    </div>`;
+  }).join('');
+  openModal('manageBillsModal');
+}
+
+function confirmDeleteBillGlobally(id){
+  const b=S.bills.find(x=>x.id===id);
+  showConfirm('Poista lasku tulevaisuudesta?',`"${b?b.name:'Lasku'}" poistetaan vain tulevaisuuden kuukausilta.`,()=>{
+    S.bills=S.bills.filter(x=>x.id!==id);
+    delete S.paidMonths[id];
+    Object.keys(S.billOverrides).filter(k=>k.startsWith(id+'_')).forEach(k=>delete S.billOverrides[k]);
+    persist(); renderAll(); closeModal('confirmModal'); closeModal('manageBillsModal');
   });
 }
 
