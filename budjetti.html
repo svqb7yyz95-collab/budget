@@ -525,7 +525,7 @@ function monthSavingsDetail(refDate){
 }
 
 function homeViewYm(){ return ymFromOffset(monthOffset); }
-function shiftMonth(d){ monthOffset+=d; const ym=homeViewYm(); viewOffset=ym===thisMonth?todayD.getDate()-1:0; renderHome(); }
+function shiftMonth(d){ monthOffset+=d; const ym=homeViewYm(); if(ym===thisMonth){viewOffset=todayD.getDate()-1;}else{const targetDate=new Date(todayD.getFullYear(),todayD.getMonth()+monthOffset,1); viewOffset=Math.round((targetDate-todayD)/(1000*60*60*24));} renderHome(); }
 
 function renderHome(){
   const homeYm=homeViewYm();
