@@ -147,7 +147,11 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
   <div class="screens">
     <div id="screen-home" class="screen active">
       <div class="home-header">
-        <div class="home-month" id="homeMonthLabel"></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button onclick="shiftMonth(-1)" style="background:var(--s2);border:1px solid var(--b2);border-radius:8px;color:var(--t2);width:30px;height:30px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">&#8249;</button>
+          <div class="home-month" id="homeMonthLabel"></div>
+          <button onclick="shiftMonth(1)" style="background:var(--s2);border:1px solid var(--b2);border-radius:8px;color:var(--t2);width:30px;height:30px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">&#8250;</button>
+        </div>
         <div class="home-nav">
           <button onclick="shiftDay(-1)">&#8249;</button>
           <button onclick="shiftDay(1)">&#8250;</button>
@@ -337,6 +341,7 @@ todayD.setHours(0,0,0,0);
 const todayStr = `${todayD.getFullYear()}-${String(todayD.getMonth()+1).padStart(2,'0')}-${String(todayD.getDate()).padStart(2,'0')}`;
 const thisMonth = todayStr.slice(0,7);
 let viewOffset = 0;
+let monthOffset = 0;
 let billMonthOffset = 0;
 let statsMonthOffset = 0;
 
@@ -507,15 +512,19 @@ function monthSavingsDetail(refDate){
   return details;
 }
 
+function homeViewYm(){ return ymFromOffset(monthOffset); }
+function shiftMonth(d){ monthOffset+=d; viewOffset=0; renderHome(); }
+
 function renderHome(){
+  const homeYm=homeViewYm();
   const viewDate=dateStr(viewOffset);
   const isT=viewDate===todayStr;
   const isPast=viewOffset<0;
-  const vd=new Date(viewDate+'T00:00:00');
+  const vd=new Date(homeYm+'-01T00:00:00');
   const mn=['Tammikuu','Helmikuu','Maaliskuu','Huhtikuu','Toukokuu','Kesäkuu',
     'Heinäkuu','Elokuu','Syyskuu','Lokakuu','Marraskuu','Joulukuu'];
   document.getElementById('homeMonthLabel').textContent=mn[vd.getMonth()]+' '+vd.getFullYear();
-  const viewYm = monthOf(viewDate);
+  const viewYm = homeYm;
   const base = baseForMonth(viewYm);
   const db = isT ? adjustedDailyBudget() : (viewYm===thisMonth && !isPast ? adjustedDailyBudget() : base);
   const spent = spentOn(viewDate);
