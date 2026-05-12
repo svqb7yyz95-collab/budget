@@ -529,7 +529,10 @@ function shiftMonth(d){ monthOffset+=d; viewOffset=0; renderHome(); }
 
 function renderHome(){
   const homeYm=homeViewYm();
-  const viewDate=dateStr(viewOffset);
+  const firstDay=new Date(homeYm+'-01T00:00:00');
+  const viewD=new Date(firstDay);
+  viewD.setDate(viewD.getDate()+viewOffset);
+  const viewDate=localDateStr(viewD);
   const isT=viewDate===todayStr;
   const isPast=viewOffset<0;
   const vd=new Date(homeYm+'-01T00:00:00');
