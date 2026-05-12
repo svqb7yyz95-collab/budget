@@ -525,7 +525,7 @@ function monthSavingsDetail(refDate){
 }
 
 function homeViewYm(){ return ymFromOffset(monthOffset); }
-function shiftMonth(d){ monthOffset+=d; viewOffset=0; renderHome(); }
+function shiftMonth(d){ monthOffset+=d; const ym=homeViewYm(); viewOffset=ym===thisMonth?todayD.getDate()-1:0; renderHome(); }
 
 function renderHome(){
   const homeYm=homeViewYm();
