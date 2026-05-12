@@ -776,8 +776,8 @@ function renderStats(){
   const maxVal = Math.max(...monthData.map(d=>Math.max(d.exp, d.inc)), 1);
   document.getElementById('alltimePieContent').innerHTML = `
     <div style="font-size:11px;color:var(--t3);display:flex;gap:12px;margin-bottom:10px">
-      <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--red);margin-right:4px"></span>Menot</span>
       <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--green);margin-right:4px"></span>Tulot</span>
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--red);margin-right:4px"></span>Menot</span>
       <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--acc);margin-right:4px"></span>Säästöt</span>
     </div>
     ${monthData.slice().reverse().map(({y,exp,inc,ms})=>{
@@ -791,8 +791,8 @@ function renderStats(){
       return `<div style="margin-bottom:14px;opacity:${sel?1:.65}">
         <div style="font-weight:600;color:${sel?'var(--acc)':'var(--t2)'};font-size:13px;margin-bottom:10px">${lbl}</div>
         <div style="display:flex;gap:12px;font-size:11px;color:var(--t2);margin-bottom:8px;justify-content:space-between">
-          <div><span>Menot</span><div style="font-weight:500;color:var(--red)">${fmt(exp)}</div></div>
           <div><span>Tulot</span><div style="font-weight:500;color:var(--green)">${fmt(inc)}</div></div>
+          <div><span>Menot</span><div style="font-weight:500;color:var(--red)">${fmt(exp)}</div></div>
           <div><span>Säästöt</span><div style="font-weight:500;color:var(--acc)">${ms>=0?'+':''}${fmtI(ms)}</div></div>
         </div>
         <div style="display:flex;flex-direction:column;gap:3px">
