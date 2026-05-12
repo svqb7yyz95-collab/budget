@@ -785,14 +785,14 @@ function renderStats(){
       const expPct = Math.round(exp/maxVal*100);
       const incPct = Math.round(inc/maxVal*100);
       const msPct = ms>0 ? Math.round(ms/maxVal*100) : 0;
-      const mn=['Tammi','Helmi','Maalis','Huhti','Touko','Kesä','Heinä','Elo','Syys','Loka','Marras','Joulu'];
+      const mn=['Tammikuu','Helmikuu','Maaliskuu','Huhtikuu','Toukokuu','Kesäkuu','Heinäkuu','Elokuu','Syyskuu','Lokakuu','Marraskuu','Joulukuu'];
       const d=new Date(y+'-01T00:00:00');
       const lbl=mn[d.getMonth()]+' '+d.getFullYear();
       return `<div style="margin-bottom:14px;opacity:${sel?1:.65}">
-        <div style="font-weight:600;color:var(--t1);font-size:13px;margin-bottom:10px">${lbl}</div>
+        <div style="font-weight:600;color:${sel?'var(--acc)':'var(--t2)'};font-size:13px;margin-bottom:10px">${lbl}</div>
         <div style="display:flex;gap:12px;font-size:11px;color:var(--t2);margin-bottom:8px;justify-content:space-between">
-          <div><span>Tulot</span><div style="font-weight:500;color:var(--green)">${fmt(inc)}</div></div>
           <div><span>Menot</span><div style="font-weight:500;color:var(--red)">${fmt(exp)}</div></div>
+          <div><span>Tulot</span><div style="font-weight:500;color:var(--green)">${fmt(inc)}</div></div>
           <div><span>Säästöt</span><div style="font-weight:500;color:var(--acc)">${ms>=0?'+':''}${fmtI(ms)}</div></div>
         </div>
         <div style="display:flex;flex-direction:column;gap:3px">
