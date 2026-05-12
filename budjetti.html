@@ -790,10 +790,10 @@ function renderStats(){
       const lbl=mn[d.getMonth()]+' '+d.getFullYear();
       return `<div style="margin-bottom:14px;opacity:${sel?1:.65}">
         <div style="font-weight:${sel?600:400};color:${sel?'var(--acc)':'var(--t2)'};font-size:12px;margin-bottom:8px">${lbl}</div>
-        <div style="display:flex;flex-direction:column;gap:6px;font-size:11px;color:var(--t2);margin-bottom:8px">
-          <div style="display:flex;justify-content:space-between"><span>Tulot</span><span style="font-weight:500;color:var(--green)">${fmt(inc)}</span></div>
-          <div style="display:flex;justify-content:space-between"><span>Menot</span><span style="font-weight:500;color:var(--red)">${fmt(exp)}</span></div>
-          <div style="display:flex;justify-content:space-between"><span>Säästöt</span><span style="font-weight:500;color:${ms>=0?'var(--green)':'var(--red)'}">${ms>=0?'+':''}${fmtI(ms)}</span></div>
+        <div style="display:flex;gap:12px;font-size:11px;color:var(--t2);margin-bottom:8px;justify-content:space-between">
+          <div><span>Tulot</span><div style="font-weight:500;color:var(--green)">${fmt(inc)}</div></div>
+          <div><span>Menot</span><div style="font-weight:500;color:var(--red)">${fmt(exp)}</div></div>
+          <div><span>Säästöt</span><div style="font-weight:500;color:${ms>=0?'var(--green)':'var(--red)'}">${ms>=0?'+':''}${fmtI(ms)}</div></div>
         </div>
         <div style="display:flex;flex-direction:column;gap:3px">
           <div style="height:6px;background:var(--s3);border-radius:3px;overflow:hidden"><div style="height:100%;width:${incPct}%;background:var(--green);border-radius:3px;opacity:.85"></div></div>
