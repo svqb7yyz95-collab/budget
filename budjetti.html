@@ -530,16 +530,14 @@ function shiftMonth(d){ monthOffset+=d; const ym=homeViewYm(); if(ym===thisMonth
 
 function renderHome(){
   const homeYm=homeViewYm();
-  const firstDay=new Date(homeYm+'-01T00:00:00');
-  const viewD=new Date(firstDay);
+  const viewD=new Date(todayD);
   viewD.setDate(viewD.getDate()+viewOffset);
   const viewDate=localDateStr(viewD);
   const isT=viewDate===todayStr;
   const isPast=viewOffset<0;
-  const vd=new Date(homeYm+'-01T00:00:00');
   const mn=['Tammikuu','Helmikuu','Maaliskuu','Huhtikuu','Toukokuu','Kesäkuu',
     'Heinäkuu','Elokuu','Syyskuu','Lokakuu','Marraskuu','Joulukuu'];
-  document.getElementById('homeMonthLabel').textContent=mn[vd.getMonth()]+' '+vd.getFullYear();
+  document.getElementById('homeMonthLabel').textContent=mn[viewD.getMonth()]+' '+viewD.getFullYear();
   const viewYm = homeYm;
   const base = baseForMonth(viewYm);
   const db = isT ? adjustedDailyBudget() : (viewYm===thisMonth && !isPast ? adjustedDailyBudget() : base);
