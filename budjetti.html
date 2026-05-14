@@ -526,7 +526,7 @@ function monthSavingsDetail(refDate){
 }
 
 function homeViewYm(){ const d=new Date(todayD); d.setDate(d.getDate()+viewOffset); const ym=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; monthOffset=Number(ym.split('-')[0])*12+Number(ym.split('-')[1])-(todayD.getFullYear()*12+todayD.getMonth()+1); return ym; }
-function shiftMonth(d){ monthOffset+=d; if(monthOffset===0){viewOffset=todayD.getDate()-1;}else{const targetDate=new Date(todayD.getFullYear(),todayD.getMonth()+monthOffset,1); viewOffset=Math.round((targetDate-todayD)/(1000*60*60*24));} renderHome(); }
+function shiftMonth(d){ monthOffset+=d; if(monthOffset===0){viewOffset=0;}else{const targetDate=new Date(todayD.getFullYear(),todayD.getMonth()+monthOffset,1); viewOffset=Math.round((targetDate-todayD)/(1000*60*60*24));} renderHome(); }
 
 function renderHome(){
   const homeYm=homeViewYm();
