@@ -1061,7 +1061,7 @@ function delIncome(id){
   },{passive:true});
 })();
 
-function shiftDay(d){ viewOffset=Math.max(-180,Math.min(365,viewOffset+d)); renderHome(); }
+function shiftDay(d){ viewOffset=Math.max(-180,Math.min(365,viewOffset+d)); const testDate=new Date(todayD); testDate.setDate(testDate.getDate()+viewOffset); const testYm=`${testDate.getFullYear()}-${String(testDate.getMonth()+1).padStart(2,'0')}`; monthOffset=Number(testYm.split('-')[0])*12+Number(testYm.split('-')[1])-Number(todayD.getFullYear())*12-Number(todayD.getMonth()+1); renderHome(); }
 renderAll();
 </script>
 </body>
