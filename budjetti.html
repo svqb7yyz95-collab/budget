@@ -98,12 +98,13 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
 .bdr-edit{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--t2);padding:8px 0;border-bottom:1px solid var(--b1)}
 .bdr-input{background:var(--s3);border:1px solid var(--b2);border-radius:7px;padding:4px 8px;font-family:'Inter',sans-serif;font-size:13px;color:var(--t1);width:110px;outline:none}
 .bdr-input:focus{border-color:var(--acc)}
-.pay-btn-full{width:100%;background:var(--gd);border:1px solid var(--green);color:var(--green);border-radius:10px;padding:11px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;margin-top:10px}
-.pay-btn-full.unpay{background:var(--s3);border-color:var(--b2);color:var(--t2)}
-.ignore-btn-full{width:100%;background:var(--amber);border:1px solid var(--amber);color:#0f0f0f;border-radius:10px;padding:11px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;margin-top:10px}
-.ignore-btn-full.active{font-weight:600}
-.save-btn-full{width:100%;background:var(--acc);color:#0f0f0f;border:none;border-radius:10px;padding:11px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;margin-top:8px}
-.del-btn-full{width:100%;background:none;border:1px solid var(--rd);color:var(--red);border-radius:10px;padding:11px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;margin-top:8px}
+.btn-full{width:100%;border-radius:10px;padding:11px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;margin-top:10px;border:none}
+.btn-green{background:var(--gd);border:1px solid var(--green);color:var(--green)}
+.btn-amber{background:var(--amber);border:1px solid var(--amber);color:#0f0f0f}
+.btn-amber.active{font-weight:600}
+.btn-blue{background:var(--acc);color:#0f0f0f;border:1px solid var(--acc)}
+.btn-blue-strong{background:var(--blue,#3b82f6);color:#fff;border:1px solid var(--blue,#3b82f6)}
+.btn-red{background:none;border:1px solid var(--red);color:var(--red)}
 .month-note{font-size:11px;color:var(--green);opacity:.7;text-align:center;margin-top:6px}
 .target-card{background:var(--s1);border:1px solid var(--acc);border-radius:16px;padding:16px 18px;margin-bottom:14px}
 .tc-label{font-size:11px;color:var(--acc);opacity:.7;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
@@ -182,10 +183,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:6px">
         <div style="font-size:12px;color:var(--t3)" id="billMonthTotal"></div>
-        <div style="display:flex;gap:6px">
-          <button class="sec-btn" onclick="openManageBillsModal()">⚙ Hallinnoi</button>
-          <button class="sec-btn" onclick="openBillModal()">+ Lisää</button>
-        </div>
+        <button class="sec-btn" onclick="openBillModal()">+ Lisää</button>
       </div>
       <div id="billListEl"></div>
     </div>
@@ -375,6 +373,7 @@ const DEF = {
   paidMonths:{},
   incomes:[],
   billOverrides:{},
+  billDeletions:{},
   ignoredBills:{},
   nextId:1,
 };
@@ -387,6 +386,7 @@ function loadState(){
 let saveTimer;
 let S = loadState();
 if(!S.billOverrides) S.billOverrides={};
+if(!S.billDeletions) S.billDeletions={};
 if(!S.migratedElec){ S.expenses.forEach(e=>{ if(e.cat==='elec') e.cat='home'; }); S.bills.forEach(b=>{ if(b.cat==='elec') b.cat='home'; }); S.migratedElec=true; persist(); }
 function persist(){
   try{ localStorage.setItem(SKEY,JSON.stringify(S)); }catch(e){}
@@ -425,6 +425,11 @@ function billsForMonth(ym){
   return S.bills.filter(b => {
     const startYm = b.startYm || monthOf(b.due||todayStr);
     if(ym < startYm) return false;
+    const delKey = Object.keys(S.billDeletions).find(k=>k.startsWith(b.id+'_'));
+    if(delKey){
+      const delYm = delKey.split('_')[1];
+      if(ym >= delYm) return false;
+    }
     if(b.type==='once') return monthOf(b.due) === ym;
     else if(b.type==='monthly') return true;
     else if(b.type==='instalment'){
@@ -661,11 +666,11 @@ function renderBills(){
         <div class="bdr-edit"><span>Kategoria</span><select class="bdr-input" id="ov_cat_${b.id}">${CATS.map(c=>`<option value="${c.id}"${c.id===b.cat?' selected':''}>${c.icon} ${c.name}</option>`).join('')}</select></div>
         <div class="bill-detail-row"><span>Tyyppi</span><span>${recLabel[b.type]||b.type}${instInfo}</span></div>
         <div class="bill-detail-row"><span>Kategoria</span><span>${cat.icon} ${cat.name}</span></div>
-        <button class="save-btn-full" onclick="saveBillOverride(${b.id},'${ym}',false)">Tallenna tälle kuulle</button>
-        <button class="save-btn-full" onclick="saveBillOverride(${b.id},'${ym}',true)">Tallenna tälle ja tuleville</button>
-        <button class="ignore-btn-full${isIgnoredBill(b.id,ym)?' active':''}" onclick="toggleIgnoreBill(${b.id},'${ym}')">${isIgnoredBill(b.id,ym)?'✓ Palauta lasku kuulle':'Jätä huomiotta budjetista'}</button>
-        <button class="pay-btn-full${paid?' unpay':''}" onclick="togglePaid(${b.id},'${ym}')">${paid?'&#8617; Peruuta maksettu':'&#10003; Merkitse maksetuksi'}</button>
-        <button class="del-btn-full" onclick="confirmDelBill(${b.id})">Poista lasku</button>
+        <button class="btn-full btn-green" onclick="togglePaid(${b.id},'${ym}')">${paid?'&#8617; Peruuta maksettu':'&#10003; Merkitse maksetuksi'}</button>
+        <button class="btn-full btn-amber${isIgnoredBill(b.id,ym)?' active':''}" onclick="toggleIgnoreBill(${b.id},'${ym}')">${isIgnoredBill(b.id,ym)?'✓ Palauta lasku kuulle':'Jätä huomiotta budjetista'}</button>
+        <button class="btn-full btn-blue" onclick="saveBillOverride(${b.id},'${ym}',false)">Tallenna tälle kuulle</button>
+        <button class="btn-full btn-blue-strong" onclick="saveBillOverride(${b.id},'${ym}',true)">Tallenna tälle ja tuleville</button>
+        <button class="btn-full btn-red" onclick="confirmDelBill(${b.id},'${ym}')">Poista lasku</button>
       </div>
     </div>`;
   }).join('');
@@ -722,12 +727,16 @@ function togglePaid(id,ym){
   persist(); renderBills();
 }
 
-function confirmDelBill(id){
+function confirmDelBill(id, ym){
   const b=S.bills.find(x=>x.id===id);
-  showConfirm('Poista lasku?',`"${b?b.name:'Lasku'}" poistetaan pysyvästi.`,()=>{
-    delete S.paidMonths[id];
-    Object.keys(S.billOverrides).filter(k=>k.startsWith(id+'_')).forEach(k=>delete S.billOverrides[k]);
-    S.bills=S.bills.filter(x=>x.id!==id);
+  showConfirm('Poista lasku?',`"${b?b.name:'Lasku'}" poistetaan tältä kuulta lähtien.`,()=>{
+    if(ym){
+      S.billDeletions[`${id}_${ym}`]=true;
+    }else{
+      delete S.paidMonths[id];
+      Object.keys(S.billOverrides).filter(k=>k.startsWith(id+'_')).forEach(k=>delete S.billOverrides[k]);
+      S.bills=S.bills.filter(x=>x.id!==id);
+    }
     persist(); renderAll(); closeModal('confirmModal');
   });
 }
