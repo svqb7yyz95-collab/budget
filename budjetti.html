@@ -661,7 +661,8 @@ function renderBills(){
         <div class="bdr-edit"><span>Kategoria</span><select class="bdr-input" id="ov_cat_${b.id}">${CATS.map(c=>`<option value="${c.id}"${c.id===b.cat?' selected':''}>${c.icon} ${c.name}</option>`).join('')}</select></div>
         <div class="bill-detail-row"><span>Tyyppi</span><span>${recLabel[b.type]||b.type}${instInfo}</span></div>
         <div class="bill-detail-row"><span>Kategoria</span><span>${cat.icon} ${cat.name}</span></div>
-        <button class="save-btn-full" onclick="saveBillOverride(${b.id},'${ym}')">Tallenna muutos tälle kuulle</button>
+        <button class="save-btn-full" onclick="saveBillOverride(${b.id},'${ym}',false)">Tallenna tälle kuulle</button>
+        <button class="save-btn-full" onclick="saveBillOverride(${b.id},'${ym}',true)">Tallenna tälle ja tuleville</button>
         <button class="ignore-btn-full${isIgnoredBill(b.id,ym)?' active':''}" onclick="toggleIgnoreBill(${b.id},'${ym}')">${isIgnoredBill(b.id,ym)?'✓ Palauta lasku kuulle':'Jätä huomiotta budjetista'}</button>
         <button class="pay-btn-full${paid?' unpay':''}" onclick="togglePaid(${b.id},'${ym}')">${paid?'&#8617; Peruuta maksettu':'&#10003; Merkitse maksetuksi'}</button>
         <button class="del-btn-full" onclick="confirmDelBill(${b.id})">Poista lasku</button>
@@ -684,19 +685,31 @@ function toggleBillDetail(id){
   chev.classList.toggle('open',open);
 }
 
-function saveBillOverride(id, ym){
+function saveBillOverride(id, ym, applyToFuture){
   const amt=parseFloat(document.getElementById('ov_amt_'+id).value);
   const day=parseInt(document.getElementById('ov_day_'+id).value);
   const cat=document.getElementById('ov_cat_'+id).value;
   const orig=S.bills.find(b=>b.id===id);
   if(!orig) return;
   if(cat && cat!==orig.cat) orig.cat=cat;
-  const key=`${id}_${ym}`;
   const ov={};
   if(!isNaN(amt)&&amt!==orig.amount) ov.amount=amt;
   if(!isNaN(day)&&day!==orig.dueDay) ov.dueDay=day;
-  if(Object.keys(ov).length>0) S.billOverrides[key]=ov;
-  else delete S.billOverrides[key];
+  if(Object.keys(ov).length===0) { persist(); renderBills(); return; }
+  if(applyToFuture){
+    const startYm=ym;
+    const [startY,startM]=startYm.split('-');
+    const startDate=new Date(startY,startM-1,1);
+    for(let i=0;i<120;i++){
+      const futureYm=`${startDate.getFullYear()}-${String(startDate.getMonth()+1).padStart(2,'0')}`;
+      const key=`${id}_${futureYm}`;
+      S.billOverrides[key]=ov;
+      startDate.setMonth(startDate.getMonth()+1);
+    }
+  }else{
+    const key=`${id}_${ym}`;
+    S.billOverrides[key]=ov;
+  }
   persist(); renderBills();
 }
 
